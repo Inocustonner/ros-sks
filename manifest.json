@@ -1,0 +1,41 @@
+{
+  "name": "ros-sks",
+  "version": "0.01",
+  "description": "",
+  "manifest_version": 2,
+
+  "permissions": 
+  [
+    "background",
+    "activeTab",
+    "tabs",
+    "storage",
+    "webNavigation",
+    "http://edu.rosdistant.ru/*",
+    "https://edu.rosdistant.ru/*"
+  ],
+  
+  "content_scripts":
+  [
+    {
+      "matches": [ "*://edu.rosdistant.ru/mod/quiz/view.php*" ],
+      "run_at": "document_idle",
+      "js": [ "src/start_quiz.js" ]
+    },
+    {
+      "matches": [ "*://edu.rosdistant.ru/mod/quiz/attempt.php*" ],
+      "run_at": "document_idle",
+      "js": [ "src/solve_quest.js" ]
+    },
+    {
+      "matches": [ "*://edu.rosdistant.ru/mod/quiz/summary.php*" ],
+      "run_at": "document_idle",
+      "js": [ "src/summary.js" ]
+    },
+    {
+      "matches": [ "*://edu.rosdistant.ru/mod/quiz/review.php*" ],
+      "run_at": "document_idle",
+      "js": [ "src/analyze.js" ]
+    }
+  ]
+}
