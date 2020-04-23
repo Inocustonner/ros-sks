@@ -70,10 +70,12 @@ function get_generic_ans(label) // image or text as answer option. for single an
 		{
 			caption += edit_src(chpart.src);
 		}
+		else if (chpart.nodeName == "SPAN") // skip pbly
+			continue
 		else
 		{
 			console.log("ERROR:", label);
-			alert("UNKNOWN ANS STRUCT");
+			alert("UNKNOWN ANS NODE" + chpart.nodeName);
 		}
 	}
 	return caption;
@@ -184,7 +186,7 @@ function check_ans(ans)
 		{
 			
 			for (let answer_obj of answers.lst)
-				if (answer_obj.caption == ans)
+				if (ans.includes(answer_obj.caption))
 				{
 					answer_obj.input.checked = true;
 					break;
@@ -235,7 +237,9 @@ function get_q(root)
 				{
 					if (chpart.nodeName == "IMG")
 						q += edit_src(chpart.src);
-					else if (chpart.nodeName == "I" || chpart.nodeName == "BR")
+					else if (chpart.nodeName == "I"		||
+							 chpart.nodeName == "BR"	||
+							 chpart.nodeName == "U")
 						continue;
 					else
 					{

@@ -31,7 +31,9 @@ function get_q(root)
 				{
 					if (chpart.nodeName == "IMG")
 						q += edit_src(chpart.src);
-					else if (chpart.nodeName == "I" || chpart.nodeName == "BR")
+					else if (chpart.nodeName == "I"		||
+							 chpart.nodeName == "BR"	||
+							 chpart.nodeName == "U")
 						continue;
 					else
 					{
@@ -63,23 +65,34 @@ function parse_single(ra_node)	// right answer node
 		{
 			caption += edit_src(chpart.src);
 		}
+		else if (chpart.nodeName == "SPAN") // skip pbly
+			continue
 		else
 		{
 			console.log(chpart);
-			alert("UNKNOWN ANSWER NODE " + chpart.nodeName);
+			alert("UNKNOWN ANS NODE " + chpart.nodeName);
 		}
-	} 
-	return caption;
+	}
+	return [caption];
 }
 
 
 function parse_multiple(ra_node)
 {
 	let captions = ra_node.innerText.split(':')[1].split(',').map(e => e.trim());
+	let i = 0;
 	for (let chpart of ra_node.children)
 	{
-		console.log(chpart);
-		alert("UNKNOWN ANSWER NODE " + chpart.nodeName);
+		if (chpart.nodeName == "IMG")
+		{
+			captions[i] += edit_src(chpart.src);
+		}
+		else
+		{
+			console.log("ERROR:", chpart);
+			alert("UNKNOWN ANS NODE " + chpart.nodeName);			
+		}
+		i++;
 	}
 	return captions;
 }
@@ -87,7 +100,7 @@ function parse_multiple(ra_node)
 
 function parse_text(ra_node)
 {
-	return parse_single(ra_node); // bcs theirs 'right answers' are familiar
+	return parse_single(ra_node)[0]; // bcs theirs 'right answers' are familiar
 }
 
 
@@ -95,12 +108,13 @@ function get_right_answer(qa_node)
 {
 	const q = get_q(qa_node);
 	let ans = "";
-
+	let noreplace = true;		// if true replace previous, else append
+	// if noreplace is set to false then return value MUST BE a list
 	let inp_node = qa_node.querySelector(".answer").querySelector("input");
 
 	let ra_node = qa_node.querySelector(".rightanswer");
 	if (inp_node.type == "radio")
-		ans = parse_single(ra_node);
+		ans = parse_single(ra_node), noreplace = false;
 	else if (inp_node.type == "checkbox")
 		ans = parse_multiple(ra_node);
 	else if (inp_node.type == "text")
@@ -110,7 +124,7 @@ function get_right_answer(qa_node)
 		alert("UNKNOWN INPUT TYPE " + inp_node.type);
 	}
 	console.log(ans);
-	return [q, ans];
+	return { rans : [q, ans], noreplace : noreplace };
 }
 
 
@@ -127,9 +141,13 @@ function qa_loop(db)
 	{
 		if (node.classList.contains("que"))
 		{
-			const rans = get_right_answer(node);
-			db[rans[0]] = rans[1];
-
+			let info = get_right_answer(node);
+			const rans = info.rans;
+			if (info.noreplace || !db[rans[0]])
+				db[rans[0]] = rans[1];
+			else if (!info.noreplace) // prevent from repeating
+				db[rans[0]] =
+					db[rans[0]].concat(rans[1].filter(x => !db[rans[0]].includes(x)));
 		}
 	}
 	console.log(db);
