@@ -235,7 +235,7 @@ function get_q(root)
 				{
 					if (chpart.nodeName == "IMG")
 						q += edit_src(chpart.src);
-					else if (chpart.nodeName == "I")
+					else if (chpart.nodeName == "I" || chpart.nodeName == "BR")
 						continue;
 					else
 					{
