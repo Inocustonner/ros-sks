@@ -54,20 +54,27 @@
 const is_empty_obj =
 	  (obj) => Object.keys(obj).length === 0 && obj.constructor === Object;
 
+
+function edit_src(src_str)
+{
+	return src_str.split('/').slice(-2).join('');
+}
+
+
 function get_generic_ans(label) // image or text as answer option. for single and multiple
 {
-	let caption = "";
-	if (label.childElementCount == 0) // test ans
+	let caption = label.innerText.trim();
+	for (let chpart of label.children)
 	{
-		caption = label.innerText.trim();
-	}
-	else if (label.childElementCount == 1) // single image
-	{
-		caption = label.firstElementChild.src;
-	}
-	else
-	{
-		alert("UNKNOWN ANS STRUCT");
+		if (chpart.nodeName == "IMG")
+		{
+			caption += edit_src(chpart.src);
+		}
+		else
+		{
+			console.log("ERROR:", label);
+			alert("UNKNOWN ANS STRUCT");
+		}
 	}
 	return caption;
 }
@@ -85,7 +92,7 @@ function parse_single()
 		let ans_obj =
 			{
 				input : opt_node.querySelector("input"),
-				caption : get_generic_ans(opt_node.querySelect("label"))
+				caption : get_generic_ans(opt_node.querySelector("label"))
 			};
 		answers_obj.lst.push(ans_obj);
 	}
@@ -103,7 +110,7 @@ function parse_multiple()
 		let ans_obj =
 			{
 				input : opt_node.querySelector("input[type=checkbox]"),
-				caption : get_generic_ans(opt_node.querySelect("label"))
+				caption : get_generic_ans(opt_node.querySelector("label"))
 			};
 		answers_obj.lst.push(ans_obj);
 	}
@@ -175,6 +182,7 @@ function check_ans(ans)
 	{
 		if (answers.type == "single")
 		{
+			
 			for (let answer_obj of answers.lst)
 				if (answer_obj.caption == ans)
 				{
@@ -200,7 +208,7 @@ function check_ans(ans)
 
 	// document.querySelector("#responseform").requestSubmit();
 	
-	// document.querySelector("[name=next]").click();
+	document.querySelector("[name=next]").click();
 }
 
 
@@ -220,15 +228,21 @@ function get_q(root)
 	{
 		if (node.nodeName == "P")
 		{
-			if (node.childElementCount == 0) // just a text
-				q += node.innerText.trim();
-			else if (node.childElementCount == 1 &&
-					node.firstElementChild.nodeName == "IMG") // just an image
-				q += node.firstElementChild.src;
-			else
+			q += node.innerText.trim();
+			if (node.childElementCount > 0) // images in
 			{
-				console.log("ERROR:", node);
-				alert("UNKNOWN QUESTION PART");
+				for (let chpart of node.children)
+				{
+					if (chpart.nodeName == "IMG")
+						q += edit_src(chpart.src);
+					else if (chpart.nodeName == "I")
+						continue;
+					else
+					{
+						console.log("ERROR:", node);
+						alert("UNKNOWN QUESTION PART");
+					}
+				}
 			}
 		}
 		else

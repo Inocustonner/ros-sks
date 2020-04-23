@@ -1,3 +1,8 @@
+function edit_src(src_str)
+{
+	return  src_str.split('/').slice(-2).join('');
+}
+
 function ensure_fullview()
 {
 	if (!location.search.includes("showall=1"))
@@ -11,7 +16,7 @@ function get_test_prec()
 	return parseInt(tr_el.match(/(?<=\()\d+/gi)[0]);
 }
 
-// almost from solve_quest.js
+
 function get_q(root)
 {
 	let q = "";
@@ -19,15 +24,21 @@ function get_q(root)
 	{
 		if (node.nodeName == "P")
 		{
-			if (node.childElementCount == 0) // just a text
-				q += node.innerText.trim();
-			else if (node.childElementCount == 1 &&
-					node.firstElementChild.nodeName == "IMG") // just an image
-				q += node.firstElementChild.src;
-			else
+			q += node.innerText.trim();
+			if (node.childElementCount > 0) // images in
 			{
-				console.log("ERROR:", node);
-				alert("UNKNOWN QUESTION PART");
+				for (let chpart of node.children)
+				{
+					if (chpart.nodeName == "IMG")
+						q += edit_src(chpart.src);
+					else if (chpart.nodeName == "I")
+						continue;
+					else
+					{
+						console.log("ERROR:", node);
+						alert("UNKNOWN QUESTION PART");
+					}
+				}
 			}
 		}
 		else
@@ -45,13 +56,32 @@ const id = sessionStorage.getItem("id");
 
 function parse_single(ra_node)	// right answer node
 {
-	return ra_node.innerText.split(':')[1].trim();
+	let caption = ra_node.innerText.split(':')[1].trim();
+	for (let chpart of ra_node.children)
+	{
+		if (chpart.nodeName == "IMG")
+		{
+			caption += edit_src(chpart.src);
+		}
+		else
+		{
+			console.log(chpart);
+			alert("UNKNOWN ANSWER NODE " + chpart.nodeName);
+		}
+	} 
+	return caption;
 }
 
 
 function parse_multiple(ra_node)
 {
-	return ra_node.innerText.split(':')[1].split(',').map(e => e.trim());
+	let captions = ra_node.innerText.split(':')[1].split(',').map(e => e.trim());
+	for (let chpart of ra_node.children)
+	{
+		console.log(chpart);
+		alert("UNKNOWN ANSWER NODE " + chpart.nodeName);
+	}
+	return captions;
 }
 
 
@@ -79,6 +109,7 @@ function get_right_answer(qa_node)
 	{
 		alert("UNKNOWN INPUT TYPE " + inp_node.type);
 	}
+	console.log(ans);
 	return [q, ans];
 }
 
